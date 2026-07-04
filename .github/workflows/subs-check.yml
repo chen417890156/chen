@@ -1,0 +1,69 @@
+name: Proxy Pool - subs-check
+
+on:
+  schedule:
+    - cron: '0 */2 * * *'
+  workflow_dispatch:
+
+jobs:
+  check-and-upload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Download subs-check
+        run: |
+          curl -sL -o subs-check.tar.gz "https://ghfast.top/https://github.com/beck-8/subs-check/releases/latest/download/subs-check_Linux_x86_64.tar.gz"
+          tar xzf subs-check.tar.gz
+          chmod +x subs-check
+      - name: Create config
+        run: |
+          mkdir -p config output
+          cat > config/config.yaml << 'YAMLEOF'
+save-method: gist
+github-gist-id: "74fbd1303b40fe0105ea72dc3363f1eb"
+github-token: "${{ secrets.GIST_TOKEN }}"
+github-api-mirror: "https://ghfast.top/"
+github-proxy: "https://ghfast.top/"
+check-interval: 0
+timeout: 5000
+alive-test-url: http://gstatic.com/generate_204
+speed-test-url: https://ghfast.top/https://github.com/AaronFeng753/Waifu2x-Extension-GUI/releases/download/v2.21.12/Waifu2x-Extension-GUI-v2.21.12-Portable.7z
+min-speed: 512
+concurrent: 50
+media-concurrent: 20
+speed-concurrent: 20
+success-limit: 200
+listen-port: ":8199"
+sub-store-port: ":8299"
+rename-node: true
+shuffle-test-order: true
+print-progress: true
+sub-urls-retry: 3
+sub-urls-concurrent: 20
+sub-urls:
+YAMLEOF
+          while IFS= read -r url; do echo "  - $url" >> config/config.yaml; done << URLS
+https://raw.githubusercontent.com/firefoxmmx2/v2rayshare_subcription/main/subscription/clash_sub.yaml
+https://raw.githubusercontent.com/mahdibland/SSAggregator/master/sub/sub_merge_yaml.yml
+https://raw.githubusercontent.com/snakem982/proxypool/main/source/clash-meta.yaml
+https://raw.githubusercontent.com/chengaopan/AutoMergePublicNodes/master/list.yml
+https://raw.githubusercontent.com/Pawdroid/Free-servers/refs/heads/main/sub
+https://raw.githubusercontent.com/aiboboxx/v2rayfree/refs/heads/main/README.md
+https://raw.githubusercontent.com/peasoft/NoMoreWalls/master/snippets/nodes.meta.yml
+https://raw.githubusercontent.com/Ruk1ng001/freeSub/main/clash.yaml
+https://raw.githubusercontent.com/ripaojiedian/freenode/main/clash
+https://raw.githubusercontent.com/go4sharing/sub/main/sub.yaml
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/wenode.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/v2rayshare.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/nodefree.txt
+https://raw.githubusercontent.com/Barabama/FreeNodes/main/nodes/clashmeta.txt
+https://raw.githubusercontent.com/xiaoji235/airport-free/main/v2ray.txt
+URLS
+      - name: Run subs-check
+        run: ./subs-check 2>&1 || true
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: output
+          path: output/
