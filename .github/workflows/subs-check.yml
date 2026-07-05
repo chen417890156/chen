@@ -1,5 +1,8 @@
 name: Proxy Pool - subs-check
+
 on:
+  schedule:
+    - cron: '0 */2 * * *'
   workflow_dispatch:
 
 jobs:
@@ -7,13 +10,15 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
-      - name: DL
-        run: curl -sL -o sc.tar.gz https://ghfast.top/https://github.com/beck-8/subs-check/releases/latest/download/subs-check_Linux_x86_64.tar.gz && tar xzf sc.tar.gz && chmod +x subs-check
-      - name: Run
-        run: mkdir -p config output && echo 'c2F2ZS1tZXRob2Q6IGdpc3QKZ2l0aHViLWdpc3QtaWQ6ICI3NGZiZDEzMDNiNDBmZTAxMDVlYTcyZGMzMzYzZjFlYiIKZ2l0aHViLXRva2VuOiAiJHt7IHNlY3JldHMuR0lTVF9UT0tFTiB9fSIKZ2l0aHViLWFwaS1taXJyb3I6ICJodHRwczovL2doZmFzdC50b3AvIgpnaXRodWItcHJveHk6ICJodHRwczovL2doZmFzdC50b3AvIgpjaGVjay1pbnRlcnZhbDogMAp0aW1lb3V0OiAzMDAwCmFsaXZlLXRlc3QtdXJsOiBodHRwczovLzEuMS4xLjEKY29uY3VycmVudDogNTAKc3VjY2Vzcy1saW1pdDogMTAKbWVkaWEtY2hlY2s6IGZhbHNlCmtlZXAtZGF5czogMApyZW5hbWUtbm9kZTogZmFsc2UKc2h1ZmZsZS10ZXN0LW9yZGVyOiB0cnVlCnByaW50LXByb2dyZXNzOiB0cnVlCnN1Yi11cmxzLXJldHJ5OiAxCnN1Yi11cmxzLWNvbmN1cnJlbnQ6IDMKc3ViLXVybHM6CiAgLSBodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vc25ha2VtOTgyL3Byb3h5cG9vbC9tYWluL3NvdXJjZS9jbGFzaC1tZXRhLnlhbWwK' | base64 -d > config/config.yaml && ./subs-check 2>&1 || true
-      - name: Upload
-        uses: actions/upload-artifact@v4
-        if: always()
-        with:
-          name: output
-          path: output/
+      - name: Download subs-check
+        run: |
+          curl -sL -o sc.tar.gz "https://github.com/beck-8/subs-check/releases/latest/download/subs-check_Linux_x86_64.tar.gz"
+          tar xzf sc.tar.gz
+          chmod +x subs-check
+      - name: Write config
+        run: |
+          mkdir -p config output
+          echo 'IyBzdWJzLWNoZWNrIOS6keerr+mFjee9rgpwcmludC1wcm9ncmVzczogdHJ1ZQpjb25jdXJyZW50OiAzMAptZWRpYS1jb25jdXJyZW50OiAwCnNwZWVkLWNvbmN1cnJlbnQ6IDAKc2h1ZmZsZS10ZXN0LW9yZGVyOiB0cnVlCmNoZWNrLWludGVydmFsOiAwCnN1Y2Nlc3MtbGltaXQ6IDEwCnRpbWVvdXQ6IDUwMDAKYWxpdmUtdGVzdC11cmw6IGh0dHBzOi8vMS4xLjEuMQptaW4tc3BlZWQ6IDAKZG93bmxvYWQtdGltZW91dDogMApkb3dubG9hZC1tYjogMAp0b3RhbC1zcGVlZC1saW1pdDogMApsaXN0ZW4tcG9ydDogIjo4MTk5IgpyZW5hbWUtbm9kZTogZmFsc2UKbWVkaWEtY2hlY2s6IGZhbHNlCmtlZXAtZGF5czogMAoKIyBXZWIg5o6n5Yi26Z2i5p2/77yI5LqR56uv5LiN6ZyA6KaB77yJCmVuYWJsZS13ZWItdWk6IGZhbHNlCgojIOi+k+WHuuWIsCBHaXN077yI5peg6ZWc5YOP77yM55u06L+eIEdpdEh1YiBBUEnvvIkKc2F2ZS1tZXRob2Q6IGdpc3QKZ2l0aHViLWdpc3QtaWQ6ICI3NGZiZDEzMDNiNDBmZTAxMDVlYTcyZGMzMzYzZjFlYiIKZ2l0aHViLXRva2VuOiAiJHt7IHNlY3JldHMuR0lTVF9UT0tFTiB9fSIKCiMg6K6i6ZiF5rqQ77yI57K+566A5YiwIDUg5Liq5b+r6YCf5rqQ77yJCmdpdGh1Yi1wcm94eTogIiIKc3ViLXVybHMtcmV0cnk6IDEKc3ViLXVybHMtY29uY3VycmVudDogMQpzdWItdXJsczoKICAtIGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9zbmFrZW05ODIvcHJveHlwb29sL21haW4vc291cmNlL2NsYXNoLW1ldGEueWFtbAogIC0gaHR0cHM6Ly9yYXcuZ2l0aHVidXNlcmNvbnRlbnQuY29tL1Bhd2Ryb2lkL0ZyZWUtc2VydmVycy9yZWZzL2hlYWRzL21haW4vc3ViCiAgLSBodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vUnVrMW5nMDAxL2ZyZWVTdWIvbWFpbi9jbGFzaC55YW1sCiAgLSBodHRwczovL3Jhdy5naXRodWJ1c2VyY29udGVudC5jb20vbWFoZGlibGFuZC9TU0FnZ3JlZ2F0b3IvbWFzdGVyL3N1Yi9zdWJfbWVyZ2VfeWFtbC55bWwKICAtIGh0dHBzOi8vcmF3LmdpdGh1YnVzZXJjb250ZW50LmNvbS9maXJlZm94bW14Mi92MnJheXNoYXJlX3N1YmNyaXB0aW9uL21haW4vc3Vic2NyaXB0aW9uL2NsYXNoX3N1Yi55YW1sCgpkbnM6CiAgZW5hYmxlOiBmYWxzZQogIGlwdjY6IGZhbHNlCg==' | base64 -d > config/config.yaml
+      - name: Run subs-check
+        run: |
+          ./subs-check 2>&1 || true
